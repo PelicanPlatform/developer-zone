@@ -1,3 +1,4 @@
+import NextLink from 'next/link';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
   Box,
@@ -58,9 +59,14 @@ export default function WorkflowFlakinessTable({
           {workflows.map((w) => (
             <TableRow key={w.name} hover>
               <TableCell>
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Link
+                  component={NextLink}
+                  href={`/workflows/?id=${w.workflowId}&name=${encodeURIComponent(w.name)}`}
+                  variant="body2"
+                  sx={{ fontWeight: 500 }}
+                >
                   {w.name}
-                </Typography>
+                </Link>
               </TableCell>
               <TableCell align="right">{w.total}</TableCell>
               <TableCell align="right" sx={{ color: 'success.main' }}>

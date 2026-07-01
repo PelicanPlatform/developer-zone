@@ -1,12 +1,10 @@
+import { GITHUB_API, PER_PAGE, toApiError } from './client';
 import type {
   FlakinessReport,
   RunSource,
   WorkflowFlakiness,
   WorkflowRun,
 } from './types';
-
-const GITHUB_API = 'https://api.github.com';
-const PER_PAGE = 100;
 
 export interface FetchFlakinessParams {
   owner: string;
@@ -96,29 +94,6 @@ export async function fetchFlakinessReport({
 
   const sample = collected.slice(0, runCount);
   return buildReport(sample, { owner, repo, source, branch, totalRunsAvailable });
-}
-
-/** Map a non-OK GitHub response to a human-readable error. */
-async function toApiError(res: Response): Promise<Error> {
-  const remaining = res.headers.get('x-ratelimit-remaining');
-  if (res.status === 403 && remaining === '0') {
-    const reset = res.headers.get('x-ratelimit-reset');
-    const when = reset
-      ? new Date(Number(reset) * 1000).toLocaleTimeString()
-      : 'shortly';
-    return new Error(
-      `GitHub API rate limit reached (unauthenticated requests are limited to 60/hour). Try again after ${when}.`,
-    );
-  }
-
-  let detail = '';
-  try {
-    const body = await res.json();
-    if (body?.message) detail = `: ${body.message}`;
-  } catch {
-    // Response had no JSON body; fall back to the status code alone.
-  }
-  return new Error(`GitHub API error (${res.status})${detail}`);
 }
 
 interface ReportContext {

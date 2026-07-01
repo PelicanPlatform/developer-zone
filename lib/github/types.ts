@@ -17,10 +17,19 @@ export interface RunRepositoryRef {
   full_name: string;
 }
 
+/** The head commit embedded in a workflow run. */
+export interface RunHeadCommit {
+  id: string;
+  message: string;
+  timestamp: string;
+  author: { name?: string; email?: string } | null;
+}
+
 /** A single workflow run as returned by the GitHub Actions REST API. */
 export interface WorkflowRun {
   id: number;
   name: string;
+  run_number: number;
   head_branch: string | null;
   head_sha: string;
   event: string;
@@ -30,6 +39,9 @@ export interface WorkflowRun {
   workflow_id: number;
   html_url: string;
   created_at: string;
+  /** Start time of the latest attempt (resets on re-run). */
+  run_started_at: string;
+  head_commit: RunHeadCommit | null;
   /** The base repository the run belongs to. */
   repository: RunRepositoryRef | null;
   /** The head repository. Differs from `repository` for runs from forks. */
@@ -67,6 +79,58 @@ export interface WorkflowFlakiness {
   /** failed / total, in the range 0..1. */
   failureRate: number;
   lastRunAt: string;
+}
+
+/** A commit associated with a workflow run's head. */
+export interface CommitInfo {
+  sha: string;
+  /** First line of the commit message. */
+  message: string;
+  /** Commit timestamp — used to order the timeline (force-push safe). */
+  timestamp: string;
+  author: string | null;
+}
+
+/** A single attempt ("try") of a workflow run. */
+export interface RunAttempt {
+  attempt: number;
+  conclusion: RunConclusion;
+  status: string | null;
+  /** When this attempt started running. */
+  startedAt: string;
+  /** Link to this specific attempt on GitHub. */
+  htmlUrl: string;
+}
+
+/** A workflow run expanded with its per-attempt details. */
+export interface WorkflowRunDetail {
+  id: number;
+  runNumber: number;
+  event: string;
+  headBranch: string | null;
+  headSha: string;
+  commit: CommitInfo | null;
+  /** Conclusion of the latest attempt. */
+  conclusion: RunConclusion;
+  status: string | null;
+  createdAt: string;
+  htmlUrl: string;
+  /** True when the run originates from a forked repository (external PR). */
+  external: boolean;
+  /** One entry per attempt, ordered 1..n. */
+  attempts: RunAttempt[];
+}
+
+/** All recent runs for a single workflow, expanded with attempts. */
+export interface WorkflowTimeline {
+  owner: string;
+  repo: string;
+  workflowId: number;
+  workflowName: string;
+  runsAnalyzed: number;
+  totalRunsAvailable: number;
+  /** Runs sorted by commit time (newest first). */
+  runs: WorkflowRunDetail[];
 }
 
 /** A full flakiness report across all workflows for a given source. */

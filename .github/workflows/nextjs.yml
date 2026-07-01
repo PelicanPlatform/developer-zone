@@ -52,6 +52,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Build with Next.js
+        env:
+          NEXT_PUBLIC_BASE_PATH: /developer-zone
         run: |
           pnpm run build
           find ./out | sed -e "s/[^-][^\/]*\//  |/g" -e "s/|\([^ ]\)/|-\1/"
