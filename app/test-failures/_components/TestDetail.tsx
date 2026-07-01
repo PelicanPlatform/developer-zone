@@ -13,6 +13,8 @@ import {
 
 import type { FailingRun, TestFailureRow } from '@/lib/github';
 
+import { CLASS_META, classify } from './classify';
+
 interface TestDetailProps {
   row: TestFailureRow;
   owner: string;
@@ -59,6 +61,7 @@ function groupByCommit(failures: FailingRun[]): CommitGroup[] {
 
 export default function TestDetail({ row, owner, repo }: TestDetailProps) {
   const commits = groupByCommit(row.failures);
+  const meta = CLASS_META[classify(row)];
 
   // Branch analysis — the key question: are all failures on one branch?
   const branchCounts = new Map<string, number>();
@@ -90,13 +93,9 @@ export default function TestDetail({ row, owner, repo }: TestDetailProps) {
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         <Chip
           label={`Failed ${row.failed} of ${row.seen} runs (${(row.failureRate * 100).toFixed(1)}%)`}
-          color={row.flaky ? 'warning' : 'error'}
+          color={meta.color}
         />
-        <Chip
-          label={row.flaky ? 'Flaky (intermittent)' : 'Fails every run'}
-          variant="outlined"
-          color={row.flaky ? 'warning' : 'error'}
-        />
+        <Chip label={meta.label} variant="outlined" color={meta.color} />
         {row.byWorkflow
           .filter((w) => w.failed > 0)
           .map((w) => (

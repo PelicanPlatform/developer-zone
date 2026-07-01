@@ -29,6 +29,8 @@ import {
 
 import type { TestFailureReport, TestFailureRow } from '@/lib/github';
 
+import { CLASS_META, classify, distinctBranches } from './classify';
+
 interface TestFailuresTableProps {
   report: TestFailureReport;
 }
@@ -71,7 +73,7 @@ function sortValue(row: TestFailureRow, orderBy: OrderBy): string | number {
     case 'branches':
       return distinctBranches(row);
     case 'flaky':
-      return Number(row.flaky);
+      return CLASS_META[classify(row)].rank;
     case 'firstFailureAt':
       return failureSpan(row).first ?? '';
     case 'lastFailureAt':
@@ -103,11 +105,6 @@ function rateColor(rate: number): string {
   if (rate >= 0.5) return 'error.main';
   if (rate >= 0.15) return 'warning.main';
   return 'text.primary';
-}
-
-/** Distinct branches these failures came from, derived from the raw failures. */
-function distinctBranches(row: TestFailureRow): number {
-  return new Set((row.failures ?? []).map((f) => f.branch ?? '(unknown)')).size;
 }
 
 function branchList(row: TestFailureRow) {
@@ -146,7 +143,7 @@ export default function TestFailuresTable({ report }: TestFailuresTableProps) {
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = report.rows.filter((r) => {
-      if (flakyOnly && !r.flaky) return false;
+      if (flakyOnly && classify(r) !== 'potentially-flaky') return false;
       if (!q) return true;
       return (
         r.name.toLowerCase().includes(q) ||
@@ -203,7 +200,7 @@ export default function TestFailuresTable({ report }: TestFailuresTableProps) {
               onChange={(e) => setFlakyOnly(e.target.checked)}
             />
           }
-          label="Flaky only"
+          label="Potentially flaky only"
         />
       </Stack>
 
@@ -281,6 +278,8 @@ export default function TestFailuresTable({ report }: TestFailuresTableProps) {
 function TestRow({ row }: { row: TestFailureRow }) {
   const branchCount = distinctBranches(row);
   const span = failureSpan(row);
+  const cls = classify(row);
+  const meta = CLASS_META[cls];
   return (
     <TableRow hover>
       <TableCell sx={{ maxWidth: 380 }}>
@@ -310,11 +309,12 @@ function TestRow({ row }: { row: TestFailureRow }) {
         </Tooltip>
       </TableCell>
       <TableCell>
-        {row.flaky ? (
-          <Chip label="Flaky" size="small" color="warning" />
-        ) : (
-          <Chip label="Always fails" size="small" color="error" variant="outlined" />
-        )}
+        <Chip
+          label={meta.label}
+          size="small"
+          color={meta.color}
+          variant={cls === 'potentially-flaky' ? 'filled' : 'outlined'}
+        />
       </TableCell>
       <TableCell sx={{ whiteSpace: 'nowrap' }}>
         {span.first ? (
@@ -355,6 +355,16 @@ function TestRow({ row }: { row: TestFailureRow }) {
 }
 
 function SummaryCards({ report }: { report: TestFailureReport }) {
+  let potentiallyFlaky = 0;
+  let branchSpecific = 0;
+  let alwaysFails = 0;
+  for (const row of report.rows) {
+    const cls = classify(row);
+    if (cls === 'potentially-flaky') potentiallyFlaky++;
+    else if (cls === 'branch-specific') branchSpecific++;
+    else alwaysFails++;
+  }
+
   const stats = [
     {
       label: 'Runs analyzed',
@@ -362,14 +372,19 @@ function SummaryCards({ report }: { report: TestFailureReport }) {
       helper: `of ${report.totalRunsAnalyzed.toLocaleString()} fetched`,
     },
     {
-      label: 'Flaky tests',
-      value: report.flakyTests.toLocaleString(),
-      helper: 'fail intermittently',
+      label: 'Potentially flaky',
+      value: potentiallyFlaky.toLocaleString(),
+      helper: 'fail across multiple branches',
       color: 'warning.main',
     },
     {
-      label: 'Always-failing tests',
-      value: report.consistentlyFailingTests.toLocaleString(),
+      label: 'Branch-specific',
+      value: branchSpecific.toLocaleString(),
+      helper: 'fail on a single branch',
+    },
+    {
+      label: 'Always-failing',
+      value: alwaysFails.toLocaleString(),
       helper: 'failed every run',
       color: 'error.main',
     },
@@ -384,7 +399,10 @@ function SummaryCards({ report }: { report: TestFailureReport }) {
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' },
+        gridTemplateColumns: {
+          xs: '1fr 1fr',
+          md: 'repeat(auto-fit, minmax(180px, 1fr))',
+        },
         gap: 2,
       }}
     >
