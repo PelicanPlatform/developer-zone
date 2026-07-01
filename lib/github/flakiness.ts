@@ -1,4 +1,4 @@
-import { GITHUB_API, PER_PAGE, toApiError } from './client';
+import { GITHUB_API, PER_PAGE, githubFetch } from './client';
 import type {
   FlakinessReport,
   RunSource,
@@ -72,13 +72,7 @@ export async function fetchFlakinessReport({
       url.searchParams.set('event', 'pull_request');
     }
 
-    const res = await fetch(url, {
-      headers: { Accept: 'application/vnd.github+json' },
-    });
-
-    if (!res.ok) throw await toApiError(res);
-
-    const data: RunsResponse = await res.json();
+    const data = await githubFetch<RunsResponse>(url);
     totalRunsAvailable = data.total_count;
 
     const batch =

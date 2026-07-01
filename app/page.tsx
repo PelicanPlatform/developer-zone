@@ -1,5 +1,6 @@
 import {
   Bolt,
+  BugReport,
   MergeType,
   Timer,
   ArrowForward,
@@ -31,6 +32,14 @@ const breakdowns: Breakdown[] = [
       "Which GitHub Actions workflows fail and then pass on re-run, ranked by flaky rate — across the default branch, pull requests, and external forks.",
     icon: <Bolt fontSize="large" />,
     href: "/flakiness",
+    status: "live",
+  },
+  {
+    title: "Test Failures",
+    description:
+      "Failed tests across the macOS, Windows, and Linux test workflows, aggregated from JUnit artifacts to surface flaky tests.",
+    icon: <BugReport fontSize="large" />,
+    href: "/test-failures",
     status: "live",
   },
   {

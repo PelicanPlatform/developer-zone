@@ -4,8 +4,25 @@ import type {
   RunAttempt,
   WorkflowRun,
   WorkflowRunDetail,
+  WorkflowSummary,
   WorkflowTimeline,
 } from './types';
+
+interface WorkflowsResponse {
+  total_count: number;
+  workflows: WorkflowSummary[];
+}
+
+/** List the repository's active workflow definitions. */
+export async function fetchWorkflows(
+  owner: string,
+  repo: string,
+): Promise<WorkflowSummary[]> {
+  const data = await githubFetch<WorkflowsResponse>(
+    `${GITHUB_API}/repos/${owner}/${repo}/actions/workflows?per_page=${PER_PAGE}`,
+  );
+  return data.workflows.filter((w) => w.state === 'active');
+}
 
 export interface FetchTimelineParams {
   owner: string;

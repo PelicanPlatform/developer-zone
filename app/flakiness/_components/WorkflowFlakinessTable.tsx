@@ -61,7 +61,7 @@ export default function WorkflowFlakinessTable({
               <TableCell>
                 <Link
                   component={NextLink}
-                  href={`/workflows/?id=${w.workflowId}&name=${encodeURIComponent(w.name)}`}
+                  href={`/workflows/${w.workflowId}/`}
                   variant="body2"
                   sx={{ fontWeight: 500 }}
                 >

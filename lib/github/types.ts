@@ -121,6 +121,14 @@ export interface WorkflowRunDetail {
   attempts: RunAttempt[];
 }
 
+/** A workflow definition in the repository. */
+export interface WorkflowSummary {
+  id: number;
+  name: string;
+  path: string;
+  state: string;
+}
+
 /** All recent runs for a single workflow, expanded with attempts. */
 export interface WorkflowTimeline {
   owner: string;

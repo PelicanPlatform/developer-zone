@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Box, Container, Typography } from '@mui/material';
 
+import { fetchFlakinessReport } from '@/lib/github';
+import type { FlakinessReport, RunSource } from '@/lib/github';
+
 import FlakinessDashboard from './_components/FlakinessDashboard';
 
 export const metadata: Metadata = {
@@ -12,7 +15,29 @@ export const metadata: Metadata = {
 const OWNER = 'PelicanPlatform';
 const REPO = 'pelican';
 
-export default function FlakinessPage() {
+// Number of recent runs sampled per source when the report is built.
+const RUN_COUNT = 300;
+
+const SOURCES: RunSource[] = ['all', 'branch', 'pull_request', 'external_pr'];
+
+export default async function FlakinessPage() {
+  const entries = await Promise.all(
+    SOURCES.map(
+      async (source) =>
+        [
+          source,
+          await fetchFlakinessReport({
+            owner: OWNER,
+            repo: REPO,
+            source,
+            branch: 'main',
+            runCount: RUN_COUNT,
+          }),
+        ] as const,
+    ),
+  );
+  const reports = Object.fromEntries(entries) as Record<RunSource, FlakinessReport>;
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -29,7 +54,7 @@ export default function FlakinessPage() {
           flaky test or pipeline. Higher flaky rates mean more developer time
           lost to retries.
         </Typography>
-        <FlakinessDashboard owner={OWNER} repo={REPO} />
+        <FlakinessDashboard reports={reports} runCount={RUN_COUNT} />
       </Container>
     </Box>
   );

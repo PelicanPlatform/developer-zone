@@ -1,13 +1,59 @@
 export const GITHUB_API = 'https://api.github.com';
 export const PER_PAGE = 100;
 
-/** Fetch a GitHub API endpoint, throwing a human-readable error on failure. */
+/**
+ * How long (seconds) a GitHub response stays in Next's Data Cache before it is
+ * refetched. This makes each unique request hit the API once and then be reused
+ * across dev reloads / page switches and across builds within the window,
+ * instead of refetching every render. Bump it down to see fresher data sooner,
+ * or clear `.next/cache` to force an immediate refresh.
+ */
+const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
+
+/**
+ * Fetch a GitHub API endpoint, throwing a human-readable error on failure.
+ *
+ * Reads `GITHUB_TOKEN` from the environment to authenticate. This is only ever
+ * called at build time (from Server Components), so the token stays server-side
+ * and is never shipped to the browser.
+ */
 export async function githubFetch<T>(url: URL | string): Promise<T> {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  const token = process.env.GITHUB_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(url, {
-    headers: { Accept: 'application/vnd.github+json' },
+    headers,
+    // Cache in Next's Data Cache so a given request is made once and reused
+    // across reloads, page switches, and builds within the window.
+    next: { revalidate: CACHE_TTL_SECONDS },
   });
   if (!res.ok) throw await toApiError(res);
   return res.json() as Promise<T>;
+}
+
+/**
+ * Fetch a binary GitHub resource (e.g. an artifact zip) with auth + caching.
+ * Zips are well under Next's per-entry Data Cache limit, so they are reused
+ * across reloads and builds just like JSON responses.
+ */
+export async function githubFetchBinary(url: URL | string): Promise<Uint8Array> {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  const token = process.env.GITHUB_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(url, {
+    headers,
+    next: { revalidate: CACHE_TTL_SECONDS },
+  });
+  if (!res.ok) throw await toApiError(res);
+  return new Uint8Array(await res.arrayBuffer());
 }
 
 /** Map a non-OK GitHub response to a human-readable error. */
