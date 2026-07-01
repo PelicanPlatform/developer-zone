@@ -8,7 +8,7 @@ export const REPO = 'pelican';
 
 // macOS, Windows, and Linux test workflows — they run the same suite.
 export const WORKFLOW_IDS = [228169648, 228169646, 228169649];
-export const RUN_COUNT = 50;
+export const RUN_COUNT = 100;
 
 /**
  * Cached report accessor. The report is expensive (it downloads and parses a

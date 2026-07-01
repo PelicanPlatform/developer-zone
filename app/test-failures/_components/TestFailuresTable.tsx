@@ -34,7 +34,14 @@ interface TestFailuresTableProps {
 }
 
 type Order = 'asc' | 'desc';
-type OrderBy = 'name' | 'failed' | 'failureRate' | 'flaky' | 'lastFailureAt';
+type OrderBy =
+  | 'name'
+  | 'failed'
+  | 'failureRate'
+  | 'branches'
+  | 'flaky'
+  | 'firstFailureAt'
+  | 'lastFailureAt';
 
 interface Column {
   id: OrderBy;
@@ -49,6 +56,7 @@ const SORTABLE_COLUMNS: Column[] = [
   { id: 'name', label: 'Test', initial: 'asc' },
   { id: 'failed', label: 'Failed / ran', align: 'right', tooltip: 'Runs failed / runs the test ran in', initial: 'desc' },
   { id: 'failureRate', label: 'Fail rate', align: 'right', initial: 'desc' },
+  { id: 'branches', label: 'Branches', align: 'right', tooltip: 'Distinct branches these failures came from', initial: 'desc' },
   { id: 'flaky', label: 'Classification', initial: 'desc' },
 ];
 
@@ -60,11 +68,31 @@ function sortValue(row: TestFailureRow, orderBy: OrderBy): string | number {
       return row.failed;
     case 'failureRate':
       return row.failureRate;
+    case 'branches':
+      return distinctBranches(row);
     case 'flaky':
       return Number(row.flaky);
+    case 'firstFailureAt':
+      return failureSpan(row).first ?? '';
     case 'lastFailureAt':
       return row.lastFailureAt ?? '';
   }
+}
+
+/** First (oldest) and last (newest) failure timestamps for a test. */
+function failureSpan(row: TestFailureRow): { first?: string; last?: string } {
+  const fs = row.failures ?? [];
+  if (fs.length === 0) return {};
+  // `failures` is sorted newest-first by the data layer.
+  return { last: fs[0].createdAt, first: fs[fs.length - 1].createdAt };
+}
+
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: '2-digit',
+  });
 }
 
 function pct(rate: number): string {
@@ -75,6 +103,29 @@ function rateColor(rate: number): string {
   if (rate >= 0.5) return 'error.main';
   if (rate >= 0.15) return 'warning.main';
   return 'text.primary';
+}
+
+/** Distinct branches these failures came from, derived from the raw failures. */
+function distinctBranches(row: TestFailureRow): number {
+  return new Set((row.failures ?? []).map((f) => f.branch ?? '(unknown)')).size;
+}
+
+function branchList(row: TestFailureRow) {
+  const counts = new Map<string, number>();
+  for (const f of row.failures ?? []) {
+    const b = f.branch ?? '(unknown)';
+    counts.set(b, (counts.get(b) ?? 0) + 1);
+  }
+  const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  return (
+    <Box>
+      {entries.map(([branch, count]) => (
+        <Typography key={branch} variant="caption" display="block">
+          {branch}: {count}
+        </Typography>
+      ))}
+    </Box>
+  );
 }
 
 export default function TestFailuresTable({ report }: TestFailuresTableProps) {
@@ -177,7 +228,19 @@ export default function TestFailuresTable({ report }: TestFailuresTableProps) {
                   </TableCell>
                 );
               })}
-              <TableCell>By workflow</TableCell>
+              <TableCell sortDirection={orderBy === 'firstFailureAt' ? order : false}>
+                <Tooltip title="Oldest → newest failure. Sorts by when the issue first appeared.">
+                  <TableSortLabel
+                    active={orderBy === 'firstFailureAt'}
+                    direction={orderBy === 'firstFailureAt' ? order : 'desc'}
+                    onClick={() =>
+                      handleSort({ id: 'firstFailureAt', label: 'Time range', initial: 'desc' })
+                    }
+                  >
+                    Time range
+                  </TableSortLabel>
+                </Tooltip>
+              </TableCell>
               <TableCell align="right" sortDirection={orderBy === 'lastFailureAt' ? order : false}>
                 <TableSortLabel
                   active={orderBy === 'lastFailureAt'}
@@ -197,7 +260,7 @@ export default function TestFailuresTable({ report }: TestFailuresTableProps) {
             ))}
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6}>
+                <TableCell colSpan={7}>
                   <Box sx={{ py: 4, textAlign: 'center' }}>
                     <Typography color="text.secondary">
                       {report.rows.length === 0
@@ -216,6 +279,8 @@ export default function TestFailuresTable({ report }: TestFailuresTableProps) {
 }
 
 function TestRow({ row }: { row: TestFailureRow }) {
+  const branchCount = distinctBranches(row);
+  const span = failureSpan(row);
   return (
     <TableRow hover>
       <TableCell sx={{ maxWidth: 380 }}>
@@ -237,6 +302,13 @@ function TestRow({ row }: { row: TestFailureRow }) {
       <TableCell align="right" sx={{ color: rateColor(row.failureRate), fontWeight: 600 }}>
         {pct(row.failureRate)}
       </TableCell>
+      <TableCell align="right">
+        <Tooltip title={branchList(row)}>
+          <Box component="span" sx={{ fontWeight: branchCount > 1 ? 600 : 400 }}>
+            {branchCount}
+          </Box>
+        </Tooltip>
+      </TableCell>
       <TableCell>
         {row.flaky ? (
           <Chip label="Flaky" size="small" color="warning" />
@@ -244,19 +316,18 @@ function TestRow({ row }: { row: TestFailureRow }) {
           <Chip label="Always fails" size="small" color="error" variant="outlined" />
         )}
       </TableCell>
-      <TableCell>
-        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-          {row.byWorkflow
-            .filter((w) => w.failed > 0)
-            .map((w) => (
-              <Chip
-                key={w.workflowId}
-                size="small"
-                variant="outlined"
-                label={`${shortLabel(w.label)}: ${w.failed}/${w.seen}`}
-              />
-            ))}
-        </Box>
+      <TableCell sx={{ whiteSpace: 'nowrap' }}>
+        {span.first ? (
+          <Typography variant="body2">
+            {span.first === span.last
+              ? fmtDate(span.first)
+              : `${fmtDate(span.first)} – ${fmtDate(span.last as string)}`}
+          </Typography>
+        ) : (
+          <Typography variant="caption" color="text.secondary">
+            —
+          </Typography>
+        )}
       </TableCell>
       <TableCell align="right">
         {row.lastFailureUrl && (
@@ -281,12 +352,6 @@ function TestRow({ row }: { row: TestFailureRow }) {
       </TableCell>
     </TableRow>
   );
-}
-
-/** Trim GitHub's verbose workflow names down to the distinguishing part. */
-function shortLabel(label: string): string {
-  const match = label.match(/\(([^)]+)\)/);
-  return match ? match[1] : label;
 }
 
 function SummaryCards({ report }: { report: TestFailureReport }) {

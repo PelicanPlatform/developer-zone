@@ -20,7 +20,7 @@ export default async function TestFailuresPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Container maxWidth="lg" sx={{ py: 6 }}>
+      <Container maxWidth={false} sx={{ py: 6 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Test Failures
         </Typography>
