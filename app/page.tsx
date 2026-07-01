@@ -1,13 +1,172 @@
-import { Box, Typography, Container } from "@mui/material";
+import {
+  Bolt,
+  MergeType,
+  Timer,
+  ArrowForward,
+} from "@mui/icons-material";
+import {
+  Box,
+  Card,
+  CardActionArea,
+  CardContent,
+  Chip,
+  Container,
+  Link,
+  Stack,
+  Typography,
+} from "@mui/material";
 
-export default async function Home() {
+interface Breakdown {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  href?: string;
+  status: "live" | "planned";
+}
+
+const breakdowns: Breakdown[] = [
+  {
+    title: "CI Flakiness",
+    description:
+      "Which GitHub Actions workflows fail and then pass on re-run, ranked by flaky rate — across the default branch, pull requests, and external forks.",
+    icon: <Bolt fontSize="large" />,
+    href: "/flakiness",
+    status: "live",
+  },
+  {
+    title: "PR Throughput",
+    description:
+      "Review latency, time-to-merge, and open pull-request backlog over time.",
+    icon: <MergeType fontSize="large" />,
+    status: "planned",
+  },
+  {
+    title: "Build Duration",
+    description:
+      "How long CI takes per workflow and where the wall-clock time is spent.",
+    icon: <Timer fontSize="large" />,
+    status: "planned",
+  },
+];
+
+export default function Home() {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <Container maxWidth="md" sx={{ mt: 8 }}>
-        <Typography variant="h4" component="h2" gutterBottom>
-          Hello World!
-        </Typography>
+      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
+        <Box sx={{ maxWidth: 760, mb: 6 }}>
+          <Typography
+            variant="overline"
+            sx={{ color: "primary.main", fontWeight: 600, letterSpacing: 1 }}
+          >
+            Pelican Platform
+          </Typography>
+          <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
+            Dev Zone
+          </Typography>
+          <Typography variant="h6" component="p" color="text.secondary">
+            Engineering dashboards that break down the health of the{" "}
+            <Link
+              href="https://github.com/PelicanPlatform/pelican"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              PelicanPlatform/pelican
+            </Link>{" "}
+            codebase — CI reliability, delivery speed, and more, pulled live from
+            GitHub.
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "1fr 1fr",
+              md: "repeat(3, 1fr)",
+            },
+            gap: 3,
+          }}
+        >
+          {breakdowns.map((b) => (
+            <BreakdownCard key={b.title} breakdown={b} />
+          ))}
+        </Box>
       </Container>
     </Box>
+  );
+}
+
+function BreakdownCard({ breakdown }: { breakdown: Breakdown }) {
+  const isLive = breakdown.status === "live";
+
+  const inner = (
+    <CardContent sx={{ height: "100%" }}>
+      <Stack spacing={2} sx={{ height: "100%" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Box sx={{ color: isLive ? "primary.main" : "text.disabled" }}>
+            {breakdown.icon}
+          </Box>
+          <Chip
+            label={isLive ? "Live" : "Planned"}
+            size="small"
+            color={isLive ? "primary" : "default"}
+            variant={isLive ? "filled" : "outlined"}
+          />
+        </Box>
+        <Typography variant="h6" component="h2">
+          {breakdown.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
+          {breakdown.description}
+        </Typography>
+        {isLive && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              color: "primary.main",
+              fontWeight: 600,
+            }}
+          >
+            <Typography variant="button">View dashboard</Typography>
+            <ArrowForward fontSize="small" />
+          </Box>
+        )}
+      </Stack>
+    </CardContent>
+  );
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        height: "100%",
+        opacity: isLive ? 1 : 0.7,
+        transition: "border-color 0.2s, box-shadow 0.2s",
+        ...(isLive && {
+          "&:hover": { borderColor: "primary.main", boxShadow: 3 },
+        }),
+      }}
+    >
+      {isLive && breakdown.href ? (
+        <CardActionArea
+          component={Link}
+          href={breakdown.href}
+          sx={{ height: "100%" }}
+        >
+          {inner}
+        </CardActionArea>
+      ) : (
+        inner
+      )}
+    </Card>
   );
 }
