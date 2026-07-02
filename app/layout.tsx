@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "Pelican Dev Zone",
   description: "Engineering dashboards visualizing the health of the Pelican Platform codebase.",
 	metadataBase: new URL(`https://${process.env.HOSTNAME}`),
+	// Keep the site out of search indexes. Inherited by every page, so each route
+	// emits <meta name="robots" content="noindex, nofollow">. Crawling stays
+	// allowed in robots.txt so bots can actually read this directive.
+	robots: { index: false, follow: false },
 };
 
 const pages = [
