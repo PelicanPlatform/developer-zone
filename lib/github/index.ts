@@ -2,6 +2,8 @@ export { fetchFlakinessReport, isExternalRun } from './flakiness';
 export type { FetchFlakinessParams } from './flakiness';
 export { fetchWorkflowTimeline, fetchWorkflows } from './workflow-runs';
 export type { FetchTimelineParams } from './workflow-runs';
+export { fetchMilestones, fetchMilestoneTimeline } from './milestones';
+export type { FetchMilestoneTimelineParams } from './milestones';
 export { fetchTestFailureReport, parseJunit, encodeTestId } from './test-failures';
 export type {
   FetchTestFailuresParams,
@@ -11,6 +13,14 @@ export type {
   WorkflowRunStat,
   FailingRun,
 } from './test-failures';
+export type {
+  Milestone,
+  MilestoneIssue,
+  MilestoneTimeline,
+  IssueStateReason,
+  IssueAssignee,
+  IssueLabel,
+} from './types';
 export type {
   FlakinessReport,
   WorkflowFlakiness,

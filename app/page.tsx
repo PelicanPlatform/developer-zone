@@ -1,6 +1,7 @@
 import {
   Bolt,
   BugReport,
+  Flag,
   MergeType,
   Timer,
   ArrowForward,
@@ -40,6 +41,14 @@ const breakdowns: Breakdown[] = [
       "Failed tests across the macOS, Windows, and Linux test workflows, aggregated from JUnit artifacts to surface flaky tests.",
     icon: <BugReport fontSize="large" />,
     href: "/test-failures",
+    status: "live",
+  },
+  {
+    title: "Milestones",
+    description:
+      "A zoomable timeline for each milestone — one segment per issue, from the day it was created to the day it was completed.",
+    icon: <Flag fontSize="large" />,
+    href: "/milestones",
     status: "live",
   },
   {

@@ -141,6 +141,66 @@ export interface WorkflowTimeline {
   runs: WorkflowRunDetail[];
 }
 
+/** A milestone as returned by the GitHub REST API. */
+export interface Milestone {
+  number: number;
+  title: string;
+  description: string | null;
+  state: 'open' | 'closed';
+  /** Open issue count reported by GitHub for this milestone. */
+  open_issues: number;
+  /** Closed issue count reported by GitHub for this milestone. */
+  closed_issues: number;
+  created_at: string;
+  updated_at: string;
+  /** Target date, if one was set. */
+  due_on: string | null;
+  closed_at: string | null;
+  html_url: string;
+}
+
+/** Why a closed issue was closed. */
+export type IssueStateReason = 'completed' | 'not_planned' | 'reopened' | null;
+
+/** A GitHub user assigned to an issue. */
+export interface IssueAssignee {
+  login: string;
+  avatarUrl: string;
+  htmlUrl: string;
+}
+
+/** A label applied to an issue. */
+export interface IssueLabel {
+  name: string;
+  /** Hex color without the leading `#`, as GitHub returns it. */
+  color: string;
+}
+
+/** A single issue attached to a milestone, reduced to the timeline essentials. */
+export interface MilestoneIssue {
+  number: number;
+  title: string;
+  state: 'open' | 'closed';
+  /** Distinguishes a completed issue from one closed as "not planned". */
+  stateReason: IssueStateReason;
+  /** ISO timestamp the issue was created — the segment's start. */
+  createdAt: string;
+  /** ISO timestamp the issue was closed, or null if still open — the segment's end. */
+  closedAt: string | null;
+  assignees: IssueAssignee[];
+  labels: IssueLabel[];
+  htmlUrl: string;
+}
+
+/** A milestone expanded with all of its issues, for the timeline view. */
+export interface MilestoneTimeline {
+  owner: string;
+  repo: string;
+  milestone: Milestone;
+  /** Issues attached to the milestone, sorted by creation time (oldest first). */
+  issues: MilestoneIssue[];
+}
+
 /** A full flakiness report across all workflows for a given source. */
 export interface FlakinessReport {
   owner: string;

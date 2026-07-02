@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import {Box} from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import { Dashboard, Bolt, BugReport } from '@mui/icons-material';
+import { Dashboard, Bolt, BugReport, Flag } from '@mui/icons-material';
 
 import theme, {fonts} from "@chtc/web-components/themes/pelican"
 
@@ -22,6 +22,7 @@ const pages = [
 	{ label: 'Overview', path: '/', icon: <Dashboard /> },
 	{ label: 'CI Flakiness', path: '/flakiness', icon: <Bolt /> },
 	{ label: 'Test Failures', path: '/test-failures', icon: <BugReport /> },
+	{ label: 'Milestones', path: '/milestones', icon: <Flag /> },
 ]
 
 export default function RootLayout({
