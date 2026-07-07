@@ -39,3 +39,13 @@ export function getMilestoneTimeline(
     { revalidate: 3600 },
   )();
 }
+
+/**
+ * Every milestone expanded with its issues, for the cross-milestone comparison
+ * view. Reuses the per-milestone timeline cache, so this adds no API calls
+ * beyond what the detail pages already fetch during a build.
+ */
+export async function getAllMilestoneTimelines(): Promise<MilestoneTimeline[]> {
+  const milestones = await getMilestones();
+  return Promise.all(milestones.map((m) => getMilestoneTimeline(m.number)));
+}

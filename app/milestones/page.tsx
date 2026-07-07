@@ -11,7 +11,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { Flag } from '@mui/icons-material';
+import { ArrowForward, Flag, Insights } from '@mui/icons-material';
 
 import type { Milestone } from '@/lib/github';
 
@@ -60,23 +60,82 @@ export default async function MilestonesPage() {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: {
-                xs: '1fr',
-                sm: '1fr 1fr',
-                md: 'repeat(3, 1fr)',
-              },
+              gridTemplateColumns: 'repeat(12, 1fr)',
               gap: 3,
             }}
           >
             {milestones.map((m) => (
-              <MilestoneCard key={m.number} milestone={m} />
+              <Box
+                key={m.number}
+                sx={{ gridColumn: { xs: 'span 12', sm: 'span 6', md: 'span 4' } }}
+              >
+                <MilestoneCard milestone={m} />
+              </Box>
             ))}
+
+            {/* Second row: a full-width (12-column) button into the aggregate
+                comparison view. */}
+            {milestones.length > 1 && (
+              <Box sx={{ gridColumn: '1 / -1' }}>
+                <CompareCard />
+              </Box>
+            )}
           </Box>
         ) : (
           <Typography color="text.secondary">No milestones found.</Typography>
         )}
       </Container>
     </Box>
+  );
+}
+
+function CompareCard() {
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        transition: 'border-color 0.2s, box-shadow 0.2s',
+        '&:hover': { borderColor: 'primary.main', boxShadow: 3 },
+      }}
+    >
+      <CardActionArea component={Link} href="/milestones/compare">
+        <CardContent sx={{ py: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2.5,
+              flexDirection: { xs: 'column', sm: 'row' },
+              textAlign: { xs: 'center', sm: 'left' },
+            }}
+          >
+            <Insights sx={{ color: 'primary.main', fontSize: 44, flexShrink: 0 }} />
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography variant="h6" component="h2">
+                Compare all milestones
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Schedule variance, cycle time, scope, issue types, and contributors
+                across every milestone — to see what moved with a late release.
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                color: 'primary.main',
+                fontWeight: 600,
+                flexShrink: 0,
+              }}
+            >
+              <Typography variant="button">Open comparison</Typography>
+              <ArrowForward fontSize="small" />
+            </Box>
+          </Box>
+        </CardContent>
+      </CardActionArea>
+    </Card>
   );
 }
 

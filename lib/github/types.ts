@@ -201,6 +201,50 @@ export interface MilestoneTimeline {
   issues: MilestoneIssue[];
 }
 
+/** One month's row in the monthly reporting table. */
+export interface MonthlyReportRow {
+  /** First day of the month in UTC, ISO (e.g. "2025-07-01"). Stable row key. */
+  month: string;
+  /** Display label, e.g. "Jul 2025". */
+  label: string;
+  /**
+   * Enhancement issues completed within the trailing 3 calendar months ending
+   * with this month (this month + the two before it).
+   */
+  enhancementsTrailing3mo: number;
+  /**
+   * Issues carrying the "facilitation" label closed within the trailing 3
+   * calendar months ending with this month.
+   */
+  facilitationClosedTrailing3mo: number;
+  /**
+   * Percentage (0..100) of tickets open at month-end that had no timeline
+   * activity in the 3 months before month-end. Null when it can't be derived
+   * (e.g. issue timelines were unavailable at build time).
+   */
+  untouchedPercent: number | null;
+  /** Count of tickets open at month-end — the untouched-% denominator. */
+  openAtMonthEnd: number;
+  /** Count of open tickets untouched for 3+ months — the untouched-% numerator. */
+  untouchedCount: number | null;
+  /** Code coverage percentage (0..100) for the month, or null if unavailable. */
+  coveragePercent: number | null;
+}
+
+/** The full monthly reporting dataset, newest month first. */
+export interface MonthlyReport {
+  owner: string;
+  repo: string;
+  /** Rows ordered newest month first. */
+  months: MonthlyReportRow[];
+  /** The label used to identify "enhancement" issues, for the page caption. */
+  enhancementLabel: string;
+  /** The label used to identify "facilitation" issues, for the page caption. */
+  facilitationLabel: string;
+  /** Non-fatal notes (e.g. why coverage or untouched-% is missing). */
+  notes: string[];
+}
+
 /** A full flakiness report across all workflows for a given source. */
 export interface FlakinessReport {
   owner: string;

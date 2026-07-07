@@ -2,6 +2,7 @@ import {
   Bolt,
   BugReport,
   Flag,
+  Assessment,
   MergeType,
   Timer,
   ArrowForward,
@@ -49,6 +50,14 @@ const breakdowns: Breakdown[] = [
       "A zoomable timeline for each milestone — one segment per issue, from the day it was created to the day it was completed.",
     icon: <Flag fontSize="large" />,
     href: "/milestones",
+    status: "live",
+  },
+  {
+    title: "Reporting",
+    description:
+      "Monthly report of enhancements delivered, stale open tickets, test coverage, and facilitation work closed — one row per month.",
+    icon: <Assessment fontSize="large" />,
+    href: "/reporting",
     status: "live",
   },
   {
