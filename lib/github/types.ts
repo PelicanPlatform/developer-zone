@@ -245,6 +245,106 @@ export interface MonthlyReport {
   notes: string[];
 }
 
+/** One week of a developer's commit activity (aligned to a Sunday, UTC). */
+export interface DeveloperWeek {
+  /** Week start (Sunday) as an ISO date, e.g. "2025-06-01". */
+  weekStart: string;
+  commits: number;
+  additions: number;
+  deletions: number;
+}
+
+/** The selectable trailing windows a developer's metrics can be viewed over. */
+export type DeveloperTimeRange = 'week' | 'month' | 'year';
+
+/** Productivity metrics scoped to a single trailing time window. */
+export interface DeveloperRangeMetrics {
+  /** Commits in the window (weekly-bucketed, from the stats endpoint). */
+  commits: number;
+  additions: number;
+  deletions: number;
+  /** additions − deletions in the window. */
+  netLines: number;
+  /** Distinct weeks in the window with at least one commit. */
+  activeWeeks: number;
+  prsOpened: number;
+  prsMerged: number;
+  /** merged / opened in the window, in 0..1, or null when none were opened. */
+  prMergeRate: number | null;
+  issuesOpened: number;
+  /** Issues authored that closed as completed within the window. */
+  issuesClosed: number;
+}
+
+/**
+ * Productivity metrics for a single contributor, combined from the
+ * commit-statistics endpoint and the repository's issues + pull requests.
+ * All-time totals sit at the top level; trailing-window views live in `ranges`.
+ */
+export interface DeveloperStats {
+  login: string;
+  avatarUrl: string;
+  htmlUrl: string;
+
+  // --- Commits, all-time (from GET /stats/contributors) ---
+  commits: number;
+  additions: number;
+  deletions: number;
+  /** additions − deletions. */
+  netLines: number;
+  /** Distinct weeks (all history) with at least one commit. */
+  activeWeeks: number;
+  /** Consecutive most-recent weeks with ≥1 commit (0 if gone quiet). */
+  currentStreakWeeks: number;
+  /** Highest commit count in any single week — a personal best. */
+  bestWeekCommits: number;
+  /** ISO date of the first week with a commit, or null. */
+  firstActiveWeek: string | null;
+  /** ISO date of the most recent week with a commit, or null. */
+  lastActiveWeek: string | null;
+  /** Trailing 52-week commit series (oldest → newest) for charts/sparklines. */
+  recentWeeks: DeveloperWeek[];
+
+  // --- Pull requests, all-time (from the issues + PR fetch) ---
+  prsOpened: number;
+  prsMerged: number;
+  /** merged / opened, in 0..1, or null when they opened none. */
+  prMergeRate: number | null;
+  /** Median days from open to merge across their merged PRs, or null. */
+  medianDaysToMerge: number | null;
+
+  // --- Issues, all-time (non-PR items) ---
+  /** Issues they authored. */
+  issuesOpened: number;
+  /** Issues they authored that closed as completed. */
+  issuesCompleted: number;
+  /** Issues assigned to them. */
+  issuesAssigned: number;
+  /** Assigned issues that closed as completed — work they resolved. */
+  issuesAssignedCompleted: number;
+
+  /** Share of all commits, in 0..1 — a non-ordinal measure of contribution. */
+  commitShare: number;
+
+  /** The same metrics scoped to each trailing window. */
+  ranges: Record<DeveloperTimeRange, DeveloperRangeMetrics>;
+}
+
+/** The full developer-productivity dataset, contributors sorted by commits. */
+export interface DeveloperReport {
+  owner: string;
+  repo: string;
+  /** Contributors ordered by commit count, descending. */
+  developers: DeveloperStats[];
+  totalCommits: number;
+  totalPrsMerged: number;
+  totalContributors: number;
+  /** Median commit count across contributors — a team baseline. */
+  medianCommits: number;
+  /** Non-fatal notes (e.g. why a metric is unavailable). */
+  notes: string[];
+}
+
 /** A full flakiness report across all workflows for a given source. */
 export interface FlakinessReport {
   owner: string;

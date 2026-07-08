@@ -11,6 +11,22 @@ export const PER_PAGE = 100;
 const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
 
 /**
+ * Standard GitHub REST headers, including a bearer token from `GITHUB_TOKEN`
+ * when one is set. This is only ever read at build time (from Server
+ * Components), so the token stays server-side and is never shipped to the
+ * browser.
+ */
+export function githubHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  const token = process.env.GITHUB_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
+/**
  * Fetch a GitHub API endpoint, throwing a human-readable error on failure.
  *
  * Reads `GITHUB_TOKEN` from the environment to authenticate. This is only ever
@@ -18,15 +34,8 @@ const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
  * and is never shipped to the browser.
  */
 export async function githubFetch<T>(url: URL | string): Promise<T> {
-  const headers: Record<string, string> = {
-    Accept: 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-  };
-  const token = process.env.GITHUB_TOKEN;
-  if (token) headers.Authorization = `Bearer ${token}`;
-
   const res = await fetch(url, {
-    headers,
+    headers: githubHeaders(),
     // Cache in Next's Data Cache so a given request is made once and reused
     // across reloads, page switches, and builds within the window.
     next: { revalidate: CACHE_TTL_SECONDS },
@@ -41,15 +50,8 @@ export async function githubFetch<T>(url: URL | string): Promise<T> {
  * across reloads and builds just like JSON responses.
  */
 export async function githubFetchBinary(url: URL | string): Promise<Uint8Array> {
-  const headers: Record<string, string> = {
-    Accept: 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-  };
-  const token = process.env.GITHUB_TOKEN;
-  if (token) headers.Authorization = `Bearer ${token}`;
-
   const res = await fetch(url, {
-    headers,
+    headers: githubHeaders(),
     next: { revalidate: CACHE_TTL_SECONDS },
   });
   if (!res.ok) throw await toApiError(res);

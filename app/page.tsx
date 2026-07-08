@@ -3,6 +3,7 @@ import {
   BugReport,
   Flag,
   Assessment,
+  Groups,
   MergeType,
   Timer,
   ArrowForward,
@@ -50,6 +51,14 @@ const breakdowns: Breakdown[] = [
       "A zoomable timeline for each milestone — one segment per issue, from the day it was created to the day it was completed.",
     icon: <Flag fontSize="large" />,
     href: "/milestones",
+    status: "live",
+  },
+  {
+    title: "Developers",
+    description:
+      "A per-developer productivity breakdown — commits, line churn, pull requests, issues, streaks, and a year of activity, ranked across the team.",
+    icon: <Groups fontSize="large" />,
+    href: "/developers",
     status: "live",
   },
   {

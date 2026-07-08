@@ -6,6 +6,8 @@ export { fetchMilestones, fetchMilestoneTimeline } from './milestones';
 export type { FetchMilestoneTimelineParams } from './milestones';
 export { fetchMonthlyReport, parseCoveragePercent } from './reporting';
 export type { FetchMonthlyReportParams, CoverageConfig } from './reporting';
+export { fetchDeveloperReport } from './developers';
+export type { FetchDeveloperReportParams } from './developers';
 export { fetchTestFailureReport, parseJunit, encodeTestId } from './test-failures';
 export type {
   FetchTestFailuresParams,
@@ -24,6 +26,11 @@ export type {
   IssueLabel,
   MonthlyReport,
   MonthlyReportRow,
+  DeveloperReport,
+  DeveloperStats,
+  DeveloperWeek,
+  DeveloperRangeMetrics,
+  DeveloperTimeRange,
 } from './types';
 export type {
   FlakinessReport,
