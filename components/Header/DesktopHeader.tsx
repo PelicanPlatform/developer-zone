@@ -10,50 +10,54 @@ import Title from "@/components/Header/Title";
 import {NavigationItem} from "@/components/Header";
 
 const DesktopHeader = ({ pages }: { pages: NavigationItem[] }) => {
-	// Reserve enough space so the centered nav won't overlap the title.
-	// If the title grows wider than this, the nav will naturally get "pushed" / clipped first.
-	const leftReservedWidthPx = 320;
-
 	return (
 		<Toolbar disableGutters>
 			<Box
 				sx={{
-					position: 'relative',
 					width: '100%',
 					display: 'flex',
 					alignItems: 'center',
+					gap: 1,
 				}}
 			>
-				{/* Left: title */}
-				<Box sx={{ flex: '0 0 auto', minWidth: 0 }}>
+				{/* Left: title. Takes an equal flex share so the nav sits centered
+				    across the full header width, and shrinks before the nav does. */}
+				<Box sx={{ flex: '1 1 0', minWidth: 0, display: 'flex', justifyContent: 'flex-start' }}>
 					<Title />
 				</Box>
 
-				{/* Center: nav, centered on full header width but constrained to not overlap left */}
+				{/* Center: nav — natural width, centered, never clipped. Buttons wrap
+				    to a second row on the rare chance the labels outgrow the width. */}
 				<Box
 					sx={{
-						position: 'absolute',
-						left: '50%',
-						transform: 'translateX(-50%)',
+						flex: '0 1 auto',
 						display: 'flex',
 						justifyContent: 'center',
-						// Prevent overlap with the left title by reserving space on both sides.
-						maxWidth: `calc(100% - ${leftReservedWidthPx * 2}px)`,
-						overflow: 'hidden',
-						whiteSpace: 'nowrap',
+						flexWrap: 'wrap',
+						rowGap: 0.5,
 					}}
 				>
 					{pages
 						.filter((p) => typeof p.path === 'string' && p.path.length > 0)
 						.map(({ label, path }) => (
 							<Link key={path} href={path} underline="none" sx={{ display: 'inline-flex' }}>
-								<Button sx={{ my: 2, color: 'white', display: 'block' }}>{label}</Button>
+								<Button
+									sx={{
+										my: 2,
+										px: 1.25,
+										minWidth: 'auto',
+										color: 'white',
+										whiteSpace: 'nowrap',
+									}}
+								>
+									{label}
+								</Button>
 							</Link>
 						))}
 				</Box>
 
-				{/* Right: spacer column to balance the left (so centering looks right). */}
-				<Box sx={{ flex: '0 0 auto', width: leftReservedWidthPx }} />
+				{/* Right: equal flex share to balance the left title and keep the nav centered. */}
+				<Box sx={{ flex: '1 1 0' }} />
 			</Box>
 		</Toolbar>
 	);
