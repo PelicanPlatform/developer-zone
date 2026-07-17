@@ -7,9 +7,9 @@ import type { FlakinessReport, RunSource } from '@/lib/github';
 import FlakinessDashboard from './_components/FlakinessDashboard';
 
 export const metadata: Metadata = {
-  title: 'CI Flakiness — Pelican',
+  title: 'Workflows — Pelican',
   description:
-    'Visualizes flaky GitHub Actions workflows in the PelicanPlatform/pelican repository, ranked by how often runs need a re-run.',
+    'Health and runtime metrics for the GitHub Actions workflows in the PelicanPlatform/pelican repository — pass rates, average runtimes, and flakiness.',
 };
 
 const OWNER = 'PelicanPlatform';
@@ -42,17 +42,17 @@ export default async function FlakinessPage() {
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Container maxWidth="lg" sx={{ py: 6 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          CI Flakiness
+          Workflows
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 760 }}>
-          Workflows in{' '}
+          The GitHub Actions workflows in{' '}
           <strong>
             {OWNER}/{REPO}
           </strong>{' '}
-          ranked by how often their runs need a re-run. A run that fails and then
-          passes on retry — without any code change — is the clearest sign of a
-          flaky test or pipeline. Higher flaky rates mean more developer time
-          lost to retries.
+          — how often their runs pass, how long they take, and how reliable they
+          are. Workflows are ranked by flaky rate: a run that fails and then
+          passes on retry, without any code change, is the clearest sign of an
+          unreliable test or pipeline.
         </Typography>
         <FlakinessDashboard reports={reports} runCount={RUN_COUNT} />
       </Container>

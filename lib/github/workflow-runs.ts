@@ -1,4 +1,5 @@
 import { GITHUB_API, PER_PAGE, githubFetch } from './client';
+import { runDurationMs } from './duration';
 import { isExternalRun } from './flakiness';
 import type {
   RunAttempt,
@@ -119,6 +120,7 @@ async function expandRun(
     conclusion: run.conclusion,
     status: run.status,
     createdAt: run.created_at,
+    durationMs: runDurationMs(run.run_started_at, run.updated_at, run.status),
     htmlUrl: run.html_url,
     external: isExternalRun(run, owner, repo),
     attempts,
@@ -135,6 +137,7 @@ async function fetchAttempts(
     conclusion: run.conclusion,
     status: run.status,
     startedAt: run.run_started_at,
+    durationMs: runDurationMs(run.run_started_at, run.updated_at, run.status),
     htmlUrl:
       run.run_attempt > 1
         ? `${run.html_url}/attempts/${run.run_attempt}`
@@ -169,6 +172,11 @@ async function fetchEarlierAttempt(
       conclusion: data.conclusion,
       status: data.status,
       startedAt: data.run_started_at ?? data.created_at,
+      durationMs: runDurationMs(
+        data.run_started_at ?? data.created_at,
+        data.updated_at,
+        data.status,
+      ),
       htmlUrl,
     };
   } catch {
@@ -179,6 +187,7 @@ async function fetchEarlierAttempt(
       conclusion: null,
       status: 'unknown',
       startedAt: run.created_at,
+      durationMs: null,
       htmlUrl,
     };
   }

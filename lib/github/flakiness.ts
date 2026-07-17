@@ -1,4 +1,5 @@
 import { GITHUB_API, PER_PAGE, githubFetch } from './client';
+import { runDurationMs } from './duration';
 import type {
   FlakinessReport,
   RunSource,
@@ -112,6 +113,7 @@ function buildReport(
   let totalReruns = 0;
   let externalRuns = 0;
   const workflows: WorkflowFlakiness[] = [];
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
   for (const [name, list] of byWorkflow) {
     let passed = 0;
@@ -120,6 +122,7 @@ function buildReport(
     let reruns = 0;
     let recovered = 0;
     let external = 0;
+    const weekDurations: number[] = [];
 
     for (const run of list) {
       if (run.conclusion === 'success') passed++;
@@ -132,6 +135,15 @@ function buildReport(
       }
 
       if (isExternalRun(run, owner, repo)) external++;
+
+      if (new Date(run.created_at).getTime() >= weekAgo) {
+        const duration = runDurationMs(
+          run.run_started_at,
+          run.updated_at,
+          run.status,
+        );
+        if (duration !== null) weekDurations.push(duration);
+      }
     }
 
     totalReruns += reruns;
@@ -154,6 +166,9 @@ function buildReport(
       external,
       flakyRate: total ? reruns / total : 0,
       failureRate: total ? failed / total : 0,
+      avgDurationMs: weekDurations.length
+        ? weekDurations.reduce((sum, d) => sum + d, 0) / weekDurations.length
+        : null,
       lastRunAt: latest.created_at,
     });
   }

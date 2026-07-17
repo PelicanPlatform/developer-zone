@@ -61,7 +61,7 @@ export default function FlakinessDashboard({
 
       <Box>
         <Typography variant="h6" component="h2" gutterBottom>
-          Workflows by flakiness
+          Per-workflow breakdown
         </Typography>
         <WorkflowFlakinessTable
           workflows={report.workflows}
@@ -79,8 +79,9 @@ export default function FlakinessDashboard({
           {owner}/{repo}
         </Link>{' '}
         GitHub Actions API (up to {runCount.toLocaleString()} runs per source).
-        Flakiness is derived from re-run attempts (run_attempt &gt; 1) on
-        completed runs; external PR runs come from forked repositories.
+        Flaky rate is derived from re-run attempts (run_attempt &gt; 1) on
+        completed runs; runtimes cover completed runs only; external PR runs
+        come from forked repositories.
       </Typography>
     </Stack>
   );

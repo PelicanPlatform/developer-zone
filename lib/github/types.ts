@@ -39,6 +39,8 @@ export interface WorkflowRun {
   workflow_id: number;
   html_url: string;
   created_at: string;
+  /** Last update time — for a completed run, when it finished. */
+  updated_at: string;
   /** Start time of the latest attempt (resets on re-run). */
   run_started_at: string;
   head_commit: RunHeadCommit | null;
@@ -78,6 +80,11 @@ export interface WorkflowFlakiness {
   flakyRate: number;
   /** failed / total, in the range 0..1. */
   failureRate: number;
+  /**
+   * Average runtime in milliseconds of runs created in the trailing 7 days,
+   * or null when the workflow had no runs in that window.
+   */
+  avgDurationMs: number | null;
   lastRunAt: string;
 }
 
@@ -98,6 +105,8 @@ export interface RunAttempt {
   status: string | null;
   /** When this attempt started running. */
   startedAt: string;
+  /** Runtime of this attempt in milliseconds, or null while still running. */
+  durationMs: number | null;
   /** Link to this specific attempt on GitHub. */
   htmlUrl: string;
 }
@@ -114,6 +123,8 @@ export interface WorkflowRunDetail {
   conclusion: RunConclusion;
   status: string | null;
   createdAt: string;
+  /** Runtime of the latest attempt in milliseconds, or null while still running. */
+  durationMs: number | null;
   htmlUrl: string;
   /** True when the run originates from a forked repository (external PR). */
   external: boolean;

@@ -36,7 +36,7 @@ export default function WorkflowTimelineView({
     <Stack spacing={3}>
       <Box>
         <Link href="/flakiness" variant="body2">
-          ← Back to CI Flakiness
+          ← Back to Workflows
         </Link>
         <Typography variant="h4" component="h1" sx={{ mt: 1 }}>
           {timeline.workflowName}

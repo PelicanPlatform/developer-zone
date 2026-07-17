@@ -15,6 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 
+import { formatDuration } from '@/lib/format';
 import type { WorkflowFlakiness } from '@/lib/github';
 
 import FlakyRateBar from './FlakyRateBar';
@@ -30,10 +31,10 @@ export default function WorkflowFlakinessTable({
   workflows,
   showExternal = false,
 }: WorkflowFlakinessTableProps) {
-  const columnCount = showExternal ? 9 : 8;
+  const columnCount = showExternal ? 10 : 9;
   return (
     <TableContainer component={Paper} variant="outlined">
-      <Table size="small" aria-label="Workflow flakiness">
+      <Table size="small" aria-label="Workflows">
         <TableHead>
           <TableRow sx={{ '& th': { fontWeight: 600 } }}>
             <TableCell>Workflow</TableCell>
@@ -51,6 +52,9 @@ export default function WorkflowFlakinessTable({
                 <TableCell align="right">External</TableCell>
               </Tooltip>
             )}
+            <Tooltip title="Average runtime of completed runs in the last 7 days">
+              <TableCell align="right">Avg runtime (7d)</TableCell>
+            </Tooltip>
             <TableCell sx={{ minWidth: 180 }}>Flaky rate</TableCell>
             <TableCell />
           </TableRow>
@@ -88,6 +92,15 @@ export default function WorkflowFlakinessTable({
               {showExternal && (
                 <TableCell align="right">{w.external}</TableCell>
               )}
+              <TableCell align="right">
+                {w.avgDurationMs !== null ? (
+                  formatDuration(w.avgDurationMs)
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    —
+                  </Typography>
+                )}
+              </TableCell>
               <TableCell>
                 <FlakyRateBar rate={w.flakyRate} />
               </TableCell>

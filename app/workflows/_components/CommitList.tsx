@@ -10,6 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 
+import { formatDuration } from '@/lib/format';
 import type { WorkflowRunDetail } from '@/lib/github';
 
 import AttemptNodes from './AttemptNodes';
@@ -129,6 +130,9 @@ export default function CommitList({ runs }: CommitListProps) {
                     </Link>
                     <Typography variant="caption" color="text.secondary">
                       ran {formatDateTime(run.createdAt)}
+                      {run.durationMs !== null
+                        ? ` · took ${formatDuration(run.durationMs)}`
+                        : ''}
                     </Typography>
                   </Box>
                   <AttemptNodes attempts={run.attempts} />

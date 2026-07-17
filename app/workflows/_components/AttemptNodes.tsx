@@ -1,5 +1,6 @@
 import { Box, Link, Tooltip, Typography } from '@mui/material';
 
+import { formatDuration } from '@/lib/format';
 import type { RunAttempt } from '@/lib/github';
 
 import { getConclusionStyle } from './conclusion';
@@ -37,6 +38,9 @@ export default function AttemptNodes({ attempts }: AttemptNodesProps) {
                   </Typography>
                   <Typography variant="caption" display="block">
                     {formatDateTime(attempt.startedAt)}
+                    {attempt.durationMs !== null
+                      ? ` · ${formatDuration(attempt.durationMs)}`
+                      : ''}
                   </Typography>
                 </Box>
               }

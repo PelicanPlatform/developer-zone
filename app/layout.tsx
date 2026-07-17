@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 const pages = [
 	{ label: 'Overview', path: '/', icon: <Dashboard /> },
-	{ label: 'CI Flakiness', path: '/flakiness', icon: <Bolt /> },
+	{ label: 'Workflows', path: '/flakiness', icon: <Bolt /> },
 	{ label: 'Test Failures', path: '/test-failures', icon: <BugReport /> },
 	{ label: 'Milestones', path: '/milestones', icon: <Flag /> },
 	{ label: 'Developers', path: '/developers', icon: <Groups /> },

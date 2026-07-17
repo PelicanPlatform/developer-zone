@@ -30,9 +30,9 @@ interface Breakdown {
 
 const breakdowns: Breakdown[] = [
   {
-    title: "CI Flakiness",
+    title: "Workflows",
     description:
-      "Which GitHub Actions workflows fail and then pass on re-run, ranked by flaky rate — across the default branch, pull requests, and external forks.",
+      "Health and runtime metrics for the GitHub Actions workflows — pass rates, average runtimes, and flakiness across the default branch, pull requests, and external forks.",
     icon: <Bolt fontSize="large" />,
     href: "/flakiness",
     status: "live",
